@@ -61,8 +61,6 @@ function MithrilHandler:access(config)
             ngx.req.set_header("x-consumer-metadata", json.encode(details))
         end
 
-        -- 1. Add rules config
-        -- 2. Add custom validation of rules config (should be a valid json)
         -- 3. Implement scope validation logic
     else
         ngx.status = 401
