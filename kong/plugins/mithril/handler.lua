@@ -11,6 +11,25 @@ local req_headers = {}
 MithrilHandler.PRIORITY = 1500
 MithrilHandler.VERSION = "0.0.1"
 
+local function validate_scopes(required_scopes, available_scopes)
+    local missing_scopes = {}
+    for k, required_scope in pairs(required_scopes) do
+        local has_scope = false
+        for key, consumer_scope in pairs(available_scopes) do
+            if required_scope == consumer_scope then
+                has_scope = true
+                break
+            end
+
+        end
+        if not has_scope then
+            table.insert(missing_scopes, required_scope)
+        end
+    end
+
+    return missing_scopes
+end
+
 local function find_rule(rules)
     local api_path = rstrip(ngx.ctx.router_matches.uri, "/")
     local request_path = ngx.var.uri
@@ -99,33 +118,23 @@ function MithrilHandler:access(config)
             return ngx.exit(200)
         end
 
-        local consumer_scopes = split(scope, " ")
-        local missing_scopes = {}
-
-        for k, required_scope in pairs(rule.scopes) do
-            local has_scope = false
-            for key, consumer_scope in pairs(consumer_scopes) do
-                ngx.say({required_scope, consumer_scope})
-                if required_scope == consumer_scope then
-                    has_scope = true
-                    break
-                end
-
-            end
-            if not has_scope then
-                table.insert(missing_scopes, required_scope)
-            end
-        end
-
+        local missing_scopes = validate_scopes(rule.scopes, split(scope, " "))
         if #missing_scopes > 0 then
             ngx.status = 403
             ngx.say("Your scope does not allow to access this resource. Missing allowances: "..table.concat(missing_scopes, ", "))
+            return ngx.exit(200)
         end
 
-        return ngx.exit(200)
+        if broker_scope ~= nil then
+            local missing_scopes = validate_scopes(rule.scopes, split(broker_scope, " "))
+            if #missing_scopes > 0 then
+                ngx.status = 403
+                ngx.say("Your scope does not allow to access this resource. Missing allowances: "..table.concat(missing_scopes, ", "))
+                return ngx.exit(200)
+            end
+        end
 
-        -- 1. Implement scope validation logic
-        -- 2. Check error messages
+        -- TOOD. Fix error messages
     else
         ngx.status = 401
         ngx.header.content_type = "application/json"
@@ -133,6 +142,5 @@ function MithrilHandler:access(config)
         return ngx.exit(200)
     end
 end
-
 
 return MithrilHandler
