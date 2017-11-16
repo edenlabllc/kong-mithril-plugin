@@ -7,9 +7,8 @@ version = "0.0.1-1"               -- TODO: renumber, must match the info in the 
 
 supported_platforms = {"linux", "macosx"}
 source = {
---   these are initially not required to make it work
---   url = "git://github.com/Mashape/kong_plugin",
---   tag = "0.0.1"
+  url = "git://github.com/edenlabllc/kong-plugin-mithril",
+  tag = "0.0.1"
 }
 
 description = {
@@ -19,11 +18,11 @@ description = {
 }
 
 dependencies = {
-    "lua-resty-http == 0.11",
-    "dkjson == 2.5"
+  "lua-resty-http == 0.11",
+  "dkjson == 2.5"
 }
 
-local pluginName = "mithril"  -- TODO: rename. This is the name to set in the Kong configuration `custom_plugins` setting.
+local pluginName = "mithril"
 build = {
   type = "builtin",
   modules = {
