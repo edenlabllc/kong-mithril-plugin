@@ -4,12 +4,32 @@ local http = require "resty.http"
 local rstrip = require("pl.stringx").rstrip
 local replace = require("pl.stringx").replace
 local split = require("pl.stringx").split
+local CorrelationIdHandler = require("kong.plugins.correlation-id.handler")
 
 local MithrilHandler = BasePlugin:extend()
 local req_headers = {}
 
 MithrilHandler.PRIORITY = 1500
 MithrilHandler.VERSION = "0.0.1"
+CorrelationIdHandler.PRIORITY = 1501
+
+local function send_error(status_code, message)
+    ngx.status = status_code
+    ngx.header.content_type = "application/json"
+    local error = {
+        meta = {
+            url = ngx.ctx.api.upstream_url,
+            type = "object",
+            request_id = ngx.ctx.correlationid_header_value,
+            code = status_code
+        },
+        error = {
+            type = "access_denied",
+            message = message
+        }
+    }
+    ngx.say(json.encode(error))
+end
 
 local function validate_scopes(required_scopes, available_scopes)
     local missing_scopes = {}
@@ -75,14 +95,8 @@ function MithrilHandler:access(config)
             }
         })
 
-        if not res then
-            ngx.say("failed to request: ", err)
-            return
-        end
-
-        if res.status ~= 200 then
-            ngx.status = res.status
-            ngx.say(res.body)
+        if not res or res.status ~= 200 then
+            send_error(401, "Invalid access token")
             return ngx.exit(200)
         end
 
@@ -94,8 +108,7 @@ function MithrilHandler:access(config)
         local scope = data.consumer_scope or details.scope
 
         if user_id == nil or scope == nil then
-            ngx.status = 401
-            ngx.say("Invalid access token")
+            send_error(401, "Invalid access token")
             return ngx.exit(200)
         end
 
@@ -107,38 +120,30 @@ function MithrilHandler:access(config)
 
         local rule = find_rule(config.rules)
         if rule == nil then
-            ngx.status = 403
-            ngx.say("No matching rule was found for path")
+            send_error(403, "ACL: No matching rule was found for path "..ngx.ctx.router_matches.uri)
             return ngx.exit(200)
         end
 
         if scope == nil or scope == "" then
-            ngx.status = 403
-            ngx.say("Your scope does not allow to access this resource. Missing allowances: "..table.concat(rule.scopes, ", "))
+            send_error(403, "Your scope does not allow to access this resource. Missing allowances: "..table.concat(rule.scopes, ", "))
             return ngx.exit(200)
         end
 
         local missing_scopes = validate_scopes(rule.scopes, split(scope, " "))
         if #missing_scopes > 0 then
-            ngx.status = 403
-            ngx.say("Your scope does not allow to access this resource. Missing allowances: "..table.concat(missing_scopes, ", "))
+            send_error(403, "Your scope does not allow to access this resource. Missing allowances: "..table.concat(missing_scopes, ", "))
             return ngx.exit(200)
         end
 
         if broker_scope ~= nil then
             local missing_scopes = validate_scopes(rule.scopes, split(broker_scope, " "))
             if #missing_scopes > 0 then
-                ngx.status = 403
-                ngx.say("Your scope does not allow to access this resource. Missing allowances: "..table.concat(missing_scopes, ", "))
+                send_error(403, "Your scope does not allow to access this resource. Missing allowances: "..table.concat(missing_scopes, ", "))
                 return ngx.exit(200)
             end
         end
-
-        -- TOOD. Fix error messages
     else
-        ngx.status = 401
-        ngx.header.content_type = "application/json"
-        ngx.say("Authorization header is not set or doesn't contain Bearer token")
+        send_error(401, "Authorization header is not set or doesn't contain Bearer token")
         return ngx.exit(200)
     end
 end
