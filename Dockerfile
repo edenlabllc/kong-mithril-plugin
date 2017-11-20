@@ -1,25 +1,22 @@
-FROM centos:7
-MAINTAINER Marco Palladino, marco@mashape.com
+FROM alpine:3.6
 
 ENV KONG_VERSION 0.11.1
+ENV KONG_SHA256 2291f92a935d850fe850394834c7737e99a82c37b0024637b4e17adfa1a4ef28
 
-RUN yum install -y wget https://bintray.com/kong/kong-community-edition-rpm/download_file?file_path=dists%2Fkong-community-edition-$KONG_VERSION.el7.noarch.rpm 
+RUN apk update \
+	&& apk add --virtual .build-deps wget tar ca-certificates \
+	&& apk add libgcc openssl pcre perl \
+	&& wget -O kong.tar.gz "https://bintray.com/kong/kong-community-edition-alpine-tar/download_file?file_path=kong-community-edition-$KONG_VERSION.apk.tar.gz" \
+	&& echo "$KONG_SHA256 *kong.tar.gz" | sha256sum -c - \
+	&& tar -xzf kong.tar.gz -C /tmp \
+	&& rm -f kong.tar.gz \
+	&& cp -R /tmp/usr / \
+	&& rm -rf /tmp/usr \
+	&& apk del .build-deps \
+	&& rm -rf /var/cache/apk/*
 
-RUN yum install -y lua lua-devel  && \
-  wget http://luarocks.org/releases/luarocks-2.2.0.tar.gz && \
-  tar -xzvf luarocks-2.2.0.tar.gz && \
-  rm -f luarocks-2.2.0.tar.gz && \
-  cd luarocks-2.2.0 && \
-  ./configure && \
-  make build && \
-  make install && \
-  make clean && \
-  cd .. && \
-  rm -rf luarocks-2.2.0 && \
-  yum clean all
-RUN yum -y groupinstall "Development Tools" && \
-luarocks install kong-plugin-mithril
-RUN yum  -y groupremove "Development tools"
+RUN luarocks install kong-plugin-mithril
+
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
