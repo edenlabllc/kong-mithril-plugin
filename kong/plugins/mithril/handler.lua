@@ -17,6 +17,10 @@ CorrelationIdHandler.PRIORITY = 1501
 local function send_error(status_code, message)
     ngx.status = status_code
     ngx.header.content_type = "application/json"
+    local type = "access_denied"
+    if status_code == 403 then
+        type = "forbidden"
+    end
     local error = {
         meta = {
             url = ngx.ctx.api.upstream_url,
@@ -25,7 +29,7 @@ local function send_error(status_code, message)
             code = status_code
         },
         error = {
-            type = "access_denied",
+            type = type,
             message = message
         }
     }
