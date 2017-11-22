@@ -21,9 +21,15 @@ local function send_error(status_code, message)
     if status_code == 403 then
         type = "forbidden"
     end
+    local url = nil
+    if ngx.ctx.api.strip_uri then
+        url = string.match(ngx.ctx.api.upstream_url, '^(%w+://[^/]+)') .. ngx.ctx.router_matches.uri
+    else
+        url = rstrip(ngx.ctx.api.upstream_url, "/") .. ngx.ctx.router_matches.uri
+    end
     local error = {
         meta = {
-            url = ngx.ctx.api.upstream_url,
+            url = url,
             type = "object",
             request_id = ngx.ctx.correlationid_header_value,
             code = status_code
