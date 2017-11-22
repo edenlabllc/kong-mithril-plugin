@@ -5,6 +5,7 @@ local rstrip = require("pl.stringx").rstrip
 local replace = require("pl.stringx").replace
 local split = require("pl.stringx").split
 local CorrelationIdHandler = require("kong.plugins.correlation-id.handler")
+local rex = require("rex_pcre")
 
 local MithrilHandler = BasePlugin:extend()
 local req_headers = {}
@@ -57,7 +58,7 @@ local function find_rule(rules)
     local method = ngx.req.get_method()
 
     for k, rule in pairs(rules) do
-        path_matched = string.match(api_relative_path, "^"..rule.path) ~= nil
+        path_matched = rex.match(api_relative_path, "^"..rule.path) ~= nil
         method_matched = false
         for key, rule_method in pairs(rule.methods) do
             if rule_method == method then
