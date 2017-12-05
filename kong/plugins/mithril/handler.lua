@@ -6,7 +6,7 @@ local replace = require("pl.stringx").replace
 local split = require("pl.stringx").split
 local CorrelationIdHandler = require("kong.plugins.correlation-id.handler")
 local rex = require("rex_pcre")
-local RateLimit = require "kong.plugins.rate-limiting.rate_limit"
+local RateLimit = require "kong.plugins.mithril.rate_limit"
 
 local MithrilHandler = BasePlugin:extend()
 local req_headers = {}

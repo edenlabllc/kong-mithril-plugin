@@ -1,6 +1,6 @@
 local singletons = require "kong.singletons"
 local timestamp = require "kong.tools.timestamp"
-local policy_cluster = require "kong.plugins.rate-limiting.policies.cluster"
+local policy_cluster = require "kong.plugins.mithril.policies.cluster"
 local ngx_log = ngx.log
 local shm = ngx.shared.kong_cache
 

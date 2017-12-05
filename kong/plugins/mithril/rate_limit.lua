@@ -1,4 +1,4 @@
-local policies = require "kong.plugins.rate-limiting.policies"
+local policies = require "kong.plugins.mithril.policies"
 local timestamp = require "kong.tools.timestamp"
 local responses = require "kong.tools.responses"
 local Object = require "kong.vendor.classic"
