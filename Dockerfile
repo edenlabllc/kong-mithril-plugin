@@ -19,6 +19,7 @@ RUN apk update \
 	&& rm -rf /var/cache/apk/*
 
 RUN luarocks install kong-plugin-mithril
+RUN luarocks install kong-plugin-stdout-log
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
