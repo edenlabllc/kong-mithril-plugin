@@ -6,7 +6,6 @@ local replace = require("pl.stringx").replace
 local split = require("pl.stringx").split
 local CorrelationIdHandler = require("kong.plugins.correlation-id.handler")
 local rex = require("rex_pcre")
-local RateLimit = require "kong.plugins.mithril.rate_limit"
 
 local MithrilHandler = BasePlugin:extend()
 local req_headers = {}
@@ -94,7 +93,6 @@ function MithrilHandler:access(config)
 
     if authorization_header ~= nil then
         local bearer = string.sub(authorization_header, 8)
-        RateLimit:rate_limit(config, bearer)
         local url = string.gsub(config.url_template, "{access_token}", bearer)
 
         local httpc = http.new()
