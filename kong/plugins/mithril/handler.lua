@@ -129,27 +129,29 @@ function MithrilHandler:access(config)
         end
 
         local rule = find_rule(config.rules)
-        if rule == nil then
-            send_error(403, "ACL: No matching rule was found for path "..ngx.ctx.router_matches.uri)
-            return ngx.exit(200)
-        end
+        if next(config.rules) ~= nil then
+            if rule == nil then
+                send_error(403, "ACL: No matching rule was found for path "..ngx.ctx.router_matches.uri)
+                return ngx.exit(200)
+            end
 
-        if scope == nil or scope == "" then
-            send_error(403, "Your scope does not allow to access this resource. Missing allowances: "..table.concat(rule.scopes, ", "))
-            return ngx.exit(200)
-        end
+            if scope == nil or scope == "" then
+                send_error(403, "Your scope does not allow to access this resource. Missing allowances: "..table.concat(rule.scopes, ", "))
+                return ngx.exit(200)
+            end
 
-        local missing_scopes = validate_scopes(rule.scopes, split(scope, " "))
-        if #missing_scopes > 0 then
-            send_error(403, "Your scope does not allow to access this resource. Missing allowances: "..table.concat(missing_scopes, ", "))
-            return ngx.exit(200)
-        end
-
-        if broker_scope ~= nil then
-            local missing_scopes = validate_scopes(rule.scopes, split(broker_scope, " "))
+            local missing_scopes = validate_scopes(rule.scopes, split(scope, " "))
             if #missing_scopes > 0 then
                 send_error(403, "Your scope does not allow to access this resource. Missing allowances: "..table.concat(missing_scopes, ", "))
                 return ngx.exit(200)
+            end
+
+            if broker_scope ~= nil then
+                local missing_scopes = validate_scopes(rule.scopes, split(broker_scope, " "))
+                if #missing_scopes > 0 then
+                    send_error(403, "Your scope does not allow to access this resource. Missing allowances: "..table.concat(missing_scopes, ", "))
+                    return ngx.exit(200)
+                end
             end
         end
     else
