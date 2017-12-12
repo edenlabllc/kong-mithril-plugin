@@ -10,7 +10,7 @@ local rex = require("rex_pcre")
 local MithrilHandler = BasePlugin:extend()
 local req_headers = {}
 
-MithrilHandler.PRIORITY = 1500
+MithrilHandler.PRIORITY = 770
 MithrilHandler.VERSION = "0.0.1"
 CorrelationIdHandler.PRIORITY = 1501
 
