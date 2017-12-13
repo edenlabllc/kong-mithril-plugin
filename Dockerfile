@@ -24,9 +24,6 @@ RUN luarocks install kong-plugin-stdout-log
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
-COPY nginx.conf /usr/local/kong/nginx.conf
-COPY nginx-kong.conf /usr/local/kong/nginx-kong.conf
-
 EXPOSE 8000 8443 8001 8444
 
 STOPSIGNAL SIGTERM
