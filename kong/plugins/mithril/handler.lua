@@ -6,6 +6,7 @@ local replace = require("pl.stringx").replace
 local split = require("pl.stringx").split
 local CorrelationIdHandler = require("kong.plugins.correlation-id.handler")
 local rex = require("rex_pcre")
+local ck = require("resty.cookie")
 
 local MithrilHandler = BasePlugin:extend()
 local req_headers = {}
@@ -87,12 +88,19 @@ end
 
 function MithrilHandler:access(config)
     MithrilHandler.super.access(self)
+    local cookie, err = ck:new()
 
-    local authorization_header = ngx.req.get_headers()["authorization"]
+    local authorization
+    local field, err = cookie:get("authorization")
+    if not field then
+        authorization = ngx.req.get_headers()["authorization"]
+    else
+        authorization = "Bearer "..field
+    end
+
     local api_key =  ngx.req.get_headers()["api-key"]
-
-    if authorization_header ~= nil then
-        local bearer = string.sub(authorization_header, 8)
+    if authorization ~= nil then
+        local bearer = string.sub(authorization, 8)
         local url = string.gsub(config.url_template, "{access_token}", bearer)
 
         local httpc = http.new()
