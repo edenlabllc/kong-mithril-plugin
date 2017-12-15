@@ -4,6 +4,7 @@ ENV KONG_VERSION 0.11.1
 ENV KONG_SHA256 2291f92a935d850fe850394834c7737e99a82c37b0024637b4e17adfa1a4ef28
 
 RUN apk update \
+    && apk add git \
     && apk add musl-dev \
     && apk add gcc \
     && apk add pcre-dev \
