@@ -1,13 +1,13 @@
 FROM alpine:3.6
 
-ENV KONG_VERSION 0.11.1
-ENV KONG_SHA256 2291f92a935d850fe850394834c7737e99a82c37b0024637b4e17adfa1a4ef28
+ENV KONG_VERSION 0.12.1
+ENV KONG_SHA256 9f699e20e7d3aa6906b14d6b52cae9996995d595d646f9b10ce09c61d91a4257
 
 RUN apk update \
-    && apk add git \
-    && apk add musl-dev \
-    && apk add gcc \
-    && apk add pcre-dev \
+	&& apk add git \
+	&& apk add musl-dev \
+	&& apk add gcc \
+	&& apk add pcre-dev \
 	&& apk add --virtual .build-deps wget tar ca-certificates \
 	&& apk add libgcc openssl pcre perl \
 	&& wget -O kong.tar.gz "https://bintray.com/kong/kong-community-edition-alpine-tar/download_file?file_path=kong-community-edition-$KONG_VERSION.apk.tar.gz" \
