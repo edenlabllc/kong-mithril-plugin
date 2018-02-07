@@ -1,5 +1,5 @@
 local BasePlugin = require "kong.plugins.base_plugin"
-local cjson = require "cjson"
+local json = require "dkjson"
 local http = require "resty.http"
 local rstrip = require("pl.stringx").rstrip
 local replace = require("pl.stringx").replace
@@ -39,7 +39,7 @@ local function send_error(status_code, message)
       message = message
     }
   }
-  ngx.say(cjson.encode(error))
+  ngx.say(json.encode(error))
 end
 
 local function validate_scopes(required_scopes, available_scopes)
@@ -124,7 +124,7 @@ function MithrilHandler:access(config)
       return ngx.exit(200)
     end
 
-    local response = cjson.decode(res.body)
+    local response = json.decode(res.body)
     local data = response.data or {}
     local details = data.details or {}
     local broker_scope = details.broker_scope
@@ -139,7 +139,7 @@ function MithrilHandler:access(config)
     ngx.req.set_header("x-consumer-id", user_id)
     ngx.req.set_header("x-consumer-scope", scope)
     if details.scope ~= nil then
-      ngx.req.set_header("x-consumer-metadata", cjson.encode(details))
+      ngx.req.set_header("x-consumer-metadata", json.encode(details))
     end
 
     local rule = find_rule(config.rules)
