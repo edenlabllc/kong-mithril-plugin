@@ -103,8 +103,7 @@ function MithrilHandler:access(config)
     local url = string.gsub(config.url_template, "{access_token}", bearer)
 
     local httpc = http.new()
-    local res,
-      err =
+    local res, err =
       httpc:request_uri(
       url,
       {
@@ -138,8 +137,11 @@ function MithrilHandler:access(config)
 
     ngx.req.set_header("x-consumer-id", user_id)
     ngx.req.set_header("x-consumer-scope", scope)
+    ngx.var.upstream_x_consumer_id = user_id
     if details.scope ~= nil then
-      ngx.req.set_header("x-consumer-metadata", json.encode(details))
+      local x_consumer_metadata = json.encode(details)
+      ngx.req.set_header("x-consumer-metadata", x_consumer_metadata)
+      ngx.var.upstream_x_consumer_metadata = x_consumer_metadata
     end
 
     local rule = find_rule(config.rules)
