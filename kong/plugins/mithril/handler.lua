@@ -141,7 +141,7 @@ function MithrilHandler:access(config)
     if details.scope ~= nil then
       local x_consumer_metadata = json.encode(details)
       ngx.req.set_header("x-consumer-metadata", x_consumer_metadata)
-      ngx.var.upstream_x_consumer_metadata = x_consumer_metadata
+      ngx.var.upstream_x_client_id = details.client_id
     end
 
     local rule = find_rule(config.rules)
