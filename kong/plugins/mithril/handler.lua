@@ -7,6 +7,7 @@ local split = require("pl.stringx").split
 local CorrelationIdHandler = require("kong.plugins.correlation-id.handler")
 local rex = require("rex_pcre")
 local ck = require("resty.cookie")
+local rate_limiting = require("kong.plugins.mithril.rate-limiting")
 
 local MithrilHandler = BasePlugin:extend()
 local req_headers = {}
@@ -100,6 +101,7 @@ function MithrilHandler:access(config)
   local api_key = ngx.req.get_headers()["api-key"]
   if authorization ~= nil then
     local bearer = string.sub(authorization, 8)
+    rate_limiting.verify(config, bearer)
     local url = string.gsub(config.url_template, "{access_token}", bearer)
 
     local httpc = http.new()

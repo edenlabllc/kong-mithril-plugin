@@ -1,11 +1,11 @@
 package = "kong-plugin-mithril"  -- TODO: rename, must match the info in the filename of this rockspec!
                                  -- as a convention; stick to the prefix: `kong-plugin-`
-version = "0.0.14-1"             -- TODO: renumber, must match the info in the filename of this rockspec!
+version = "0.0.15-1"             -- TODO: renumber, must match the info in the filename of this rockspec!
 
 supported_platforms = {"linux", "macosx"}
 source = {
   url = "git://github.com/edenlabllc/kong-plugin-mithril",
-  tag = "0.0.14"
+  tag = "0.0.15"
 }
 
 description = {
@@ -27,5 +27,7 @@ build = {
   modules = {
     ["kong.plugins."..pluginName..".handler"] = "kong/plugins/"..pluginName.."/handler.lua",
     ["kong.plugins."..pluginName..".schema"] = "kong/plugins/"..pluginName.."/schema.lua",
+    ["kong.plugins."..pluginName..".rate-limiting"] = "kong/plugins/"..pluginName.."/rate-limiting/init.lua",
+    ["kong.plugins."..pluginName..".rate-limiting.policy"] = "kong/plugins/"..pluginName.."/rate-limiting/policy.lua",
   }
 }
