@@ -1,11 +1,11 @@
 package = "kong-plugin-mithril"  -- TODO: rename, must match the info in the filename of this rockspec!
                                  -- as a convention; stick to the prefix: `kong-plugin-`
-version = "0.0.15-1"             -- TODO: renumber, must match the info in the filename of this rockspec!
+version = "0.0.16-1"             -- TODO: renumber, must match the info in the filename of this rockspec!
 
 supported_platforms = {"linux", "macosx"}
 source = {
   url = "git://github.com/edenlabllc/kong-plugin-mithril",
-  tag = "0.0.15"
+  tag = "0.0.16"
 }
 
 description = {
@@ -15,7 +15,7 @@ description = {
 }
 
 dependencies = {
-  "lua-resty-http == 0.11",
+  "lua-resty-http == 0.12",
   "lrexlib-pcre == 2.9.0-1",
   "lua-resty-cookie == 0.1.0-1",
   "dkjson == 2.5",
