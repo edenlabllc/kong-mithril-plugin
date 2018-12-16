@@ -1,7 +1,7 @@
 local singletons = require "kong.singletons"
 local timestamp = require "kong.tools.timestamp"
 local redis = require "resty.redis"
-local reports = require "kong.core.reports"
+local reports = require "kong.reports"
 local ngx_log = ngx.log
 
 local pairs = pairs
