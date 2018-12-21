@@ -127,6 +127,8 @@ function MithrilHandler:access(config)
 
     local response = json.decode(res.body)
     local data = response.data or {}
+    local urgent = response.urgent or {}
+    local mis_client_id = urgent.mis_client_id
     local details = data.details or {}
     local broker_scope = details.broker_scope
     local user_id = data.user_id or data.consumer_id
@@ -139,6 +141,7 @@ function MithrilHandler:access(config)
 
     ngx.req.set_header("x-consumer-id", user_id)
     ngx.req.set_header("x-consumer-scope", scope)
+    ngx.req.set_header("x-mis-client-id", mis_client_id)
     ngx.var.upstream_x_consumer_id = user_id
     if details.scope ~= nil then
       local x_consumer_metadata = json.encode(details)
