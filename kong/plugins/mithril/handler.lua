@@ -141,7 +141,7 @@ function MithrilHandler:access(config)
 
     ngx.req.set_header("x-consumer-id", user_id)
     ngx.req.set_header("x-consumer-scope", scope)
-    ngx.req.set_header("x-mis-client-id", mis_client_id)
+    ngx.var.upstream_x_mis_client_id = mis_client_id
     ngx.var.upstream_x_consumer_id = user_id
     if details.scope ~= nil then
       local x_consumer_metadata = json.encode(details)
