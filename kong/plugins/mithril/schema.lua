@@ -53,7 +53,7 @@ local function rule_check(value)
     rule = "string",
     resource = "string",
     resource_id = "string",
-    contexts = {type = "array", default = {}, func = context_check}
+    contexts = "array"
   }
 
   for k, v in pairs(value) do
