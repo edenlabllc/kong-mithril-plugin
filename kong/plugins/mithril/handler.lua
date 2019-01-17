@@ -185,6 +185,65 @@ function MithrilHandler:access(config)
           return ngx.exit(200)
         end
       end
+
+      local abac = rule.abac
+      if abac then
+        local m, err = ngx.re.match(ngx.var.request_uri, abac.rule)
+
+        -- Rule was found
+        if m then
+          local resource_id = m[abac.resource_id]
+          local contexts = {}
+          for i, j in pairs(abac.contexts) do
+            contexts[i] = {
+              type = j["name"],
+              id = m[j["id"]]
+            }
+          end
+
+          local request = {
+            consumer = {
+              user_id = user_id,
+              client_id = details.client_id
+            },
+            resource = {
+              action = abac.action,
+              type = abac.resource,
+              id = resource_id
+            },
+            contexts = contexts
+          }
+
+          local httpc = http.new()
+          local res, err =
+            httpc:request_uri(
+            abac.endpoint,
+            {
+              method = "POST",
+              body = json.encode(request),
+              headers = {
+                accept = "application/json",
+                ["Content-Type"] = "application/json"
+              }
+            }
+          )
+
+          httpc:close()
+
+          if not res or res.status ~= 200 then
+            send_error(403, "Access denied")
+            return ngx.exit(200)
+          end
+
+          local response = json.decode(res.body)
+          local result = response.result
+
+          if result == false then
+            send_error(403, "Access denied")
+            return ngx.exit(200)
+          end
+        end
+      end
     end
   else
     send_error(401, "Authorization header is not set or doesn't contain Bearer token")
