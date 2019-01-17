@@ -1,5 +1,35 @@
 local Errors = require "kong.dao.errors"
 
+local function context_check(value)
+  local context_fields = {
+    name = "string",
+    id = "string"
+  }
+
+  for k, v in pairs(value) do
+    if type(v) ~= "table" then
+      return false, "'context." .. (k - 1) .. "' is not a table"
+    end
+
+    for key, val in pairs(v) do
+      if context_fields[key] == nil then
+        return false, "'context." .. (k - 1) .. "." .. key .. "' is not allowed field"
+      end
+    end
+
+    for key, key_type in pairs(context_fields) do
+      if v[key] == nil then
+        return false, "'context." .. (k - 1) .. "." .. key .. "' is required"
+      end
+      if type(v[key]) ~= key_type then
+        return false, "'context." .. (k - 1) .. "." .. key .. "' is invalid type. " .. key_type .. " expected"
+      end
+    end
+  end
+
+  return true
+end
+
 local function rule_check(value)
   local rule_fields = {
     path = "string",
@@ -25,36 +55,6 @@ local function rule_check(value)
     resource_id = "string",
     contexts = {type = "array", default = {}, func = context_check}
   }
-
-  local function context_check(value)
-    local context_fields = {
-      name = "string",
-      id = "string"
-    }
-
-    for k, v in pairs(value) do
-      if type(v) ~= "table" then
-        return false, "'context." .. (k - 1) .. "' is not a table"
-      end
-
-      for key, val in pairs(v) do
-        if context_fields[key] == nil then
-          return false, "'context." .. (k - 1) .. "." .. key .. "' is not allowed field"
-        end
-      end
-
-      for key, key_type in pairs(context_fields) do
-        if v[key] == nil then
-          return false, "'context." .. (k - 1) .. "." .. key .. "' is required"
-        end
-        if type(v[key]) ~= key_type then
-          return false, "'context." .. (k - 1) .. "." .. key .. "' is invalid type. " .. key_type .. " expected"
-        end
-      end
-    end
-
-    return true
-  end
 
   for k, v in pairs(value) do
     if type(v) ~= "table" then
@@ -130,12 +130,7 @@ return {
     redis_password = {type = "string"},
     redis_timeout = {type = "number", default = 2000},
     redis_database = {type = "number", default = 0},
-    hide_client_headers = {type = "boolean", default = false},
-    abac = {
-      type = "table",
-      schema = {},
-      default = nil
-    }
+    hide_client_headers = {type = "boolean", default = false}
   },
   self_check = function(schema, plugin_t, dao, is_update)
     local ordered_periods = {"second", "minute", "hour", "day", "month", "year"}
