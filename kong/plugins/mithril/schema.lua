@@ -76,17 +76,19 @@ local function rule_check(value)
           return false, "'rules." .. (k - 1) .. "." .. key .. "' is invalid type. " .. key_type .. " expected"
         end
       else
-        for abac_key, abac_key_type in pairs(abac_fields) do
-          if type(v[key][abac_key]) ~= abac_key_type then
-            return false, "'rules." ..
-              (k - 1) .. "." .. key .. "." .. abac_key .. "' is invalid type. " .. abac_key_type .. " expected"
-          end
+        if type(v[key]) == key_type then
+          for abac_key, abac_key_type in pairs(abac_fields) do
+            if type(v[key][abac_key]) ~= abac_key_type then
+              return false, "'rules." ..
+                (k - 1) .. "." .. key .. "." .. abac_key .. "' is invalid type. " .. abac_key_type .. " expected"
+            end
 
-          if abac_key == "contexts" then
-            for context_k, context_v in pairs(v[key][abac_key]) do
-              local result, error = context_check(v[key][abac_key])
-              if not result then
-                return result, error
+            if abac_key == "contexts" then
+              for context_k, context_v in pairs(v[key][abac_key]) do
+                local result, error = context_check(v[key][abac_key])
+                if not result then
+                  return result, error
+                end
               end
             end
           end
