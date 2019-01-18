@@ -191,11 +191,7 @@ function MithrilHandler:access(config)
 
       local abac = rule.abac
       if abac then
-        ngx.log(ngx.INFO, json.encode(rule.abac))
-        ngx.say(json.encode(rule.abac))
         local m, err = ngx.re.match(ngx.var.request_uri, abac.rule)
-        ngx.log(ngx.INFO, json.encode(ngx.var.request_uri) .. ", " .. abac.rule)
-        ngx.say(json.encode(ngx.var.request_uri) .. ", " .. abac.rule)
 
         -- Rule was found
         if m then
