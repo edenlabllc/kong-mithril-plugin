@@ -2,10 +2,8 @@ local BasePlugin = require "kong.plugins.base_plugin"
 local json = require "dkjson"
 local http = require "resty.http"
 local rstrip = require("pl.stringx").rstrip
-local replace = require("pl.stringx").replace
 local split = require("pl.stringx").split
 local CorrelationIdHandler = require("kong.plugins.correlation-id.handler")
-local rex = require("rex_pcre")
 local ck = require("resty.cookie")
 local rate_limiting = require("kong.plugins.mithril.rate-limiting")
 
@@ -64,17 +62,16 @@ end
 local function find_rule(rules)
   local api_path = rstrip(ngx.ctx.router_matches.uri, "/")
   local request_path = ngx.var.uri
-  local api_relative_path = replace(request_path, api_path, "")
+
+  ngx.log(ngx.ERR, "Request: " .. request_path .. " api: " .. api_path)
+  local api_relative_path, n, err = ngx.re.gsub(request_path, api_path, "")
   local method = ngx.req.get_method()
 
   for k, rule in pairs(rules) do
     ngx.log(ngx.ERR, api_relative_path .. " " .. "^" .. rule.path)
-    path_matched = rex.match(api_relative_path, "^" .. rule.path) ~= nil
+    local path_matched, err = ngx.re.match(api_relative_path, "^" .. rule.path)
     ngx.log(ngx.ERR, "Path matched: " .. tostring(path_matched))
-    local m, err = ngx.re.match(api_relative_path, "^" .. rule.path)
-    if m ~= nil then
-      ngx.log(ngx.ERR, "ngx.re: " .. json.encode(m))
-    end
+
     method_matched = false
     for key, rule_method in pairs(rule.methods) do
       if rule_method == method then
