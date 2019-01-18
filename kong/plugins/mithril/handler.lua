@@ -68,7 +68,13 @@ local function find_rule(rules)
   local method = ngx.req.get_method()
 
   for k, rule in pairs(rules) do
+    ngx.log(ngx.ERR, api_relative_path .. " " .. "^" .. rule.path)
     path_matched = rex.match(api_relative_path, "^" .. rule.path) ~= nil
+    ngx.log(ngx.ERR, "Path matched: " .. tostring(path_matched))
+    local m, err = ngx.re.match(api_relative_path, "^" .. rule.path)
+    if m ~= nil then
+      ngx.log(ngx.ERR, "ngx.re: " .. json.encode(m))
+    end
     method_matched = false
     for key, rule_method in pairs(rule.methods) do
       if rule_method == method then
