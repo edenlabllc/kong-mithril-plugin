@@ -53,7 +53,7 @@ local function rule_check(value)
     rule = "string",
     resource = "string",
     resource_id = "string",
-    contexts = "array"
+    contexts = "table"
   }
 
   for k, v in pairs(value) do
@@ -78,7 +78,7 @@ local function rule_check(value)
         for abac_key, abac_key_type in pairs(abac_fields) do
           if type(v[key][abac_key]) ~= abac_key_type then
             return false, "'rules." ..
-              (k - 1) .. "." .. key .. ".abac" .. abac_key .. "' is invalid type. " .. abac_key_type .. " expected"
+              (k - 1) .. "." .. key .. "." .. abac_key .. "' is invalid type. " .. abac_key_type .. " expected"
           end
 
           if abac_key == "contexts" then
