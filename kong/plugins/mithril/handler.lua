@@ -186,8 +186,7 @@ function MithrilHandler:access(config)
         end
       end
 
-      ngx.log(ngx.INFO, json.encode(rule))
-      ngx.say(json.encode(rule))
+      ngx.log(ngx.ERR, json.encode(rule))
 
       local abac = rule.abac
       if abac then
@@ -245,6 +244,9 @@ function MithrilHandler:access(config)
             send_error(403, "Access denied")
             return ngx.exit(200)
           end
+        else
+          send_error(401, "Abac rule was not found")
+          return ngx.exit(200)
         end
       end
     end
