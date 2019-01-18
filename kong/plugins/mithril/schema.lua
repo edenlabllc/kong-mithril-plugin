@@ -68,13 +68,14 @@ local function rule_check(value)
     end
 
     for key, key_type in pairs(rule_fields) do
-      if v[key] == nil then
-        return false, "'rules." .. (k - 1) .. "." .. key .. "' is required"
-      end
-      if type(v[key]) ~= key_type then
-        return false, "'rules." .. (k - 1) .. "." .. key .. "' is invalid type. " .. key_type .. " expected"
-      end
-      if key == "abac" then
+      if key ~= "abac" then
+        if v[key] == nil then
+          return false, "'rules." .. (k - 1) .. "." .. key .. "' is required"
+        end
+        if type(v[key]) ~= key_type then
+          return false, "'rules." .. (k - 1) .. "." .. key .. "' is invalid type. " .. key_type .. " expected"
+        end
+      else
         for abac_key, abac_key_type in pairs(abac_fields) do
           if type(v[key][abac_key]) ~= abac_key_type then
             return false, "'rules." ..
