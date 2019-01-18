@@ -63,14 +63,11 @@ local function find_rule(rules)
   local api_path = rstrip(ngx.ctx.router_matches.uri, "/")
   local request_path = ngx.var.uri
 
-  ngx.log(ngx.ERR, "Request: " .. request_path .. " api: " .. api_path)
   local api_relative_path, n, err = ngx.re.gsub(request_path, api_path, "")
   local method = ngx.req.get_method()
 
   for k, rule in pairs(rules) do
-    ngx.log(ngx.ERR, api_relative_path .. " " .. "^" .. rule.path)
     local path_matched, err = ngx.re.match(api_relative_path, "^" .. rule.path)
-    ngx.log(ngx.ERR, "Path matched: " .. tostring(path_matched))
 
     method_matched = false
     for key, rule_method in pairs(rule.methods) do
@@ -188,8 +185,6 @@ function MithrilHandler:access(config)
           return ngx.exit(200)
         end
       end
-
-      ngx.log(ngx.ERR, json.encode(rule))
 
       local abac = rule.abac
       if abac then
