@@ -236,7 +236,7 @@ function MithrilHandler:access(config)
           end
 
           local response = json.decode(res.body)
-          local result = response.result
+          local result = response.data.result
 
           if result == false then
             send_error(403, "Access denied")
