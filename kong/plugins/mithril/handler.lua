@@ -204,7 +204,8 @@ function MithrilHandler:access(config)
           local request = {
             consumer = {
               user_id = user_id,
-              client_id = details.client_id
+              client_id = details.client_id,
+              mis_client_id = mis_client_id
             },
             resource = {
               action = abac.action,
