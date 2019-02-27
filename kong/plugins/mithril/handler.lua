@@ -113,7 +113,8 @@ function MithrilHandler:access(config)
         headers = {
           accept = "application/json",
           ["Content-Type"] = "application/json",
-          ["api-key"] = api_key
+          ["api-key"] = api_key,
+          ["x-request-id"] = ngx.ctx.correlationid_header_value
         }
       }
     )
@@ -224,7 +225,8 @@ function MithrilHandler:access(config)
               body = json.encode(request),
               headers = {
                 accept = "application/json",
-                ["Content-Type"] = "application/json"
+                ["Content-Type"] = "application/json",
+                ["x-request-id"] = ngx.ctx.correlationid_header_value
               }
             }
           )
