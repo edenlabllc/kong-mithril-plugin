@@ -190,16 +190,25 @@ function MithrilHandler:access(config)
       local abac = rule.abac
       if abac then
         local m, err = ngx.re.match(ngx.var.request_uri, abac.rule)
+        local args, err = ngx.req.get_uri_args()
 
         -- Rule was found
         if m then
           local resource_id = m[abac.resource_id]
           local contexts = {}
           for i, j in pairs(abac.contexts) do
-            contexts[i] = {
-              type = j["name"],
-              id = m[j["id"]]
-            }
+            -- if context is absent in uri, take it from query params
+            if m[j["id"]] ~= nil then
+              contexts[i] = {
+                type = j["name"],
+                id = m[j["id"]]
+              }
+            else
+              contexts[i] = {
+                type = j["name"],
+                id = args[j["id"]]
+              }
+            end
           end
 
           local request = {
