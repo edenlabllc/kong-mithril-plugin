@@ -198,15 +198,12 @@ function MithrilHandler:access(config)
           local contexts = {}
           for i, j in pairs(abac.contexts) do
             -- if context is absent in uri, take it from query params
-            if m[j["id"]] ~= nil then
+            local context_id = m[j["id"]] or args[j["id"]]
+
+            if context_id ~= nil then
               contexts[i] = {
                 type = j["name"],
-                id = m[j["id"]]
-              }
-            else
-              contexts[i] = {
-                type = j["name"],
-                id = args[j["id"]]
+                id = context_id
               }
             end
           end
