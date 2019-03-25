@@ -305,11 +305,13 @@ local function check_abac(rule, user_id, mis_client_id, details)
         send_error(403, "Access denied")
         return ngx.exit(200)
       end
-    else
-      send_error(401, "Abac rule was not found")
-      return ngx.exit(200)
+
     end
+  else
+    send_error(401, "Abac rule was not found")
+    return ngx.exit(200)
   end
 end
+
 
 return MithrilHandler
