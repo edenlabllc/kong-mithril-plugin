@@ -102,7 +102,7 @@ local function verify_url(url, error_msg)
   httpc:close()
 
   if not res or res.status ~= 200 then
-    send_error(401, error_msg)
+    send_error(401, error_msg .. res.status)
     return ngx.exit(200), true
   end
   return res
@@ -272,8 +272,13 @@ local function do_process(config, authorization)
     local res, err = verify_url(url, verify_error_msg)
     local mis_client_id, details, scope, broker_scope, user_id = verify_details(res.body)
 
-    if user_id == nil or scope == nil then
-      send_error(401, "Invalid access token")
+    if user_id == nil then
+      send_error(401, "Invalid user id")
+      return ngx.exit(200)
+    end
+
+    if scope == nil then
+      send_error(401, "Invalid scope")
       return ngx.exit(200)
     end
 
