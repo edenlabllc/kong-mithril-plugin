@@ -111,34 +111,8 @@ local function do_process_mis_only()
     rate_limiting.verify(config, api_key)
     local url = string.gsub(config.url_template, "{api_key}", api_key)
 
-    local httpc = http.new()
-    local res, err =
-    httpc:request_uri(
-    url,
-    {
-      method = "GET",
-      headers = {
-        accept = "application/json",
-        ["Content-Type"] = "application/json",
-        ["x-request-id"] = ngx.ctx.correlationid_header_value
-      }
-    }
-    )
-
-    httpc:close()
-
-    if not res or res.status ~= 200 then
-      send_error(401, "Invalid api key")
-      return ngx.exit(200)
-    end
-
-    local response = json.decode(res.body)
-    local data = response.data or {}
-    local urgent = response.urgent or {}
-    local mis_client_id = urgent.mis_client_id
-    local details = data.details or {}
-    local broker_scope = details.broker_scope
-    local scope = data.consumer_scope or details.scope
+    local verify_error_msg = "Invalid api key"
+    local mis_client_id, details, scope, broker_scope = json.decode(verify_result.body)
 
     if scope == nil then
       send_error(401, "Invalid api key")
@@ -158,42 +132,14 @@ local function do_process_mis_only()
 end
 
 local function do_process(authorization)
-  local api_key = ngx.req.get_headers()["api-key"]
   if authorization ~= nil then
     local bearer = string.sub(authorization, 8)
     rate_limiting.verify(config, bearer)
     local url = string.gsub(config.url_template, "{access_token}", bearer)
 
-    local httpc = http.new()
-    local res, err =
-    httpc:request_uri(
-    url,
-    {
-      method = "GET",
-      headers = {
-        accept = "application/json",
-        ["Content-Type"] = "application/json",
-        ["api-key"] = api_key,
-        ["x-request-id"] = ngx.ctx.correlationid_header_value
-      }
-    }
-    )
-
-    httpc:close()
-
-    if not res or res.status ~= 200 then
-      send_error(401, "Invalid access token")
-      return ngx.exit(200)
-    end
-
-    local response = json.decode(res.body)
-    local data = response.data or {}
-    local urgent = response.urgent or {}
-    local mis_client_id = urgent.mis_client_id
-    local details = data.details or {}
-    local broker_scope = details.broker_scope
-    local user_id = data.user_id or data.consumer_id
-    local scope = data.consumer_scope or details.scope
+    local verify_error_msg = "Invalid access token"
+    local verify_result = verify_url(verify_error_msg)
+    local mis_client_id, details, scope, broker_scope, user_id = json.decode(verify_result.body)
 
     if user_id == nil or scope == nil then
       send_error(401, "Invalid access token")
@@ -215,6 +161,43 @@ local function do_process(authorization)
   end
 end
 
+
+local function verify_url(error_msg)
+  local api_key = ngx.req.get_headers()["api-key"]
+  local httpc = http.new()
+  local res, err =
+  httpc:request_uri(
+  url,
+  {
+    method = "GET",
+    headers = {
+      accept = "application/json",
+      ["Content-Type"] = "application/json",
+      ["api-key"] = api_key,
+      ["x-request-id"] = ngx.ctx.correlationid_header_value
+    }
+  }
+  )
+
+  httpc:close()
+
+  if not verify_result or verify_result.status ~= 200 then
+    send_error(401, error_msg)
+    return ngx.exit(200)
+  end
+
+  local response = json.decode(verify_result.body)
+  local data = response.data or {}
+  local urgent = response.urgent or {}
+  local mis_client_id = urgent.mis_client_id
+  local details = data.details or {}
+  local broker_scope = details.broker_scope
+  local user_id = data.user_id or data.consumer_id
+  local scope = data.consumer_scope or details.scope
+
+  return mis_client_id, details, scope, broker_scope, user_id
+end
+
 local function set_mis_client_id(scope, mis_client_id, details)
   ngx.req.set_header("x-consumer-scope", scope)
   ngx.var.upstream_x_mis_client_id = mis_client_id
@@ -223,8 +206,8 @@ local function set_mis_client_id(scope, mis_client_id, details)
     ngx.req.set_header("x-consumer-metadata", x_consumer_metadata)
     ngx.var.upstream_x_client_id = details.client_id
   end
-
 end
+
 
 local function check_scopes(rule, scope, broker_scope)
   if rule == nil then
