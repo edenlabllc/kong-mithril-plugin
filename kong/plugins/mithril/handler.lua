@@ -235,7 +235,7 @@ local function check_abac(rule, user_id, mis_client_id, details)
   end
 end
 
-local function do_process_mis_only()
+local function do_process_mis_only(config)
   local api_key = ngx.req.get_headers()["api-key"]
   if api_key ~= nil then
     rate_limiting.verify(config, api_key)
@@ -262,7 +262,7 @@ local function do_process_mis_only()
   end
 end
 
-local function do_process(authorization)
+local function do_process(config, authorization)
   if authorization ~= nil then
     local bearer = string.sub(authorization, 8)
     rate_limiting.verify(config, bearer)
@@ -297,7 +297,7 @@ function MithrilHandler:access(config)
   local cookie, err = ck:new()
 
   if config.mis_only == true then
-    do_process_mis_only()
+    do_process_mis_only(config)
   else
     local authorization
     local field, err = cookie:get("authorization")
@@ -307,7 +307,7 @@ function MithrilHandler:access(config)
       authorization = "Bearer " .. field
     end
 
-    do_process(authorization)
+    do_process(config, authorization)
   end
 end
 
