@@ -243,7 +243,7 @@ local function do_process_mis_only(config)
 
     local verify_error_msg = "Invalid api key"
     local res, err = verify_url(url, verify_error_msg)
-    local mis_client_id, details, scope, broker_scope = verify_details(res.body)
+    local mis_client_id, details, scope, broker_scope, _user_id = verify_details(res.body)
 
     if scope == nil then
       send_error(401, "Invalid api key")
@@ -270,7 +270,7 @@ local function do_process(config, authorization)
 
     local verify_error_msg = "Invalid access token"
     local res, err = verify_url(url, verify_error_msg)
-    local mis_client_id, details, scope, broker_scope = verify_details(res.body)
+    local mis_client_id, details, scope, broker_scope, user_id = verify_details(res.body)
 
     if user_id == nil or scope == nil then
       send_error(401, "Invalid access token")
