@@ -82,7 +82,7 @@ local function find_rule(rules)
   end
 end
 
-local function verify_url(error_msg)
+local function verify_url(url, error_msg)
   local api_key = ngx.req.get_headers()["api-key"]
   local httpc = http.new()
   local res, err =
@@ -101,15 +101,15 @@ local function verify_url(error_msg)
 
   httpc:close()
 
-  if not verify_result or verify_result.status ~= 200 then
+  if not res or res.status ~= 200 then
     send_error(401, error_msg)
     return ngx.exit(200), true
   end
   return res
 end
 
-local function verify_details()
-  local response = json.decode(verify_result.body)
+local function verify_details(body)
+  local response = json.decode(body)
   local data = response.data or {}
   local urgent = response.urgent or {}
   local mis_client_id = urgent.mis_client_id
@@ -122,25 +122,6 @@ end
 
 function MithrilHandler:new()
   MithrilHandler.super.new(self, "mithril")
-end
-
-function MithrilHandler:access(config)
-  MithrilHandler.super.access(self)
-  local cookie, err = ck:new()
-
-  if config.mis_only == true then
-    do_process_mis_only()
-  else
-    local authorization
-    local field, err = cookie:get("authorization")
-    if not field then
-      authorization = ngx.req.get_headers()["authorization"]
-    else
-      authorization = "Bearer " .. field
-    end
-
-    do_process(authorization)
-  end
 end
 
 local function set_mis_client_id(scope, mis_client_id, details)
@@ -265,8 +246,8 @@ local function do_process_mis_only()
     local url = string.gsub(config.url_template, "{api_key}", api_key)
 
     local verify_error_msg = "Invalid api key"
-    local res, err = verify_url(verify_error_msg)
-    local mis_client_id, details, scope, broker_scope = verify_details(res)
+    local res, err = verify_url(url, verify_error_msg)
+    local mis_client_id, details, scope, broker_scope = verify_details(res.body)
 
     if scope == nil then
       send_error(401, "Invalid api key")
@@ -292,8 +273,8 @@ local function do_process(authorization)
     local url = string.gsub(config.url_template, "{access_token}", bearer)
 
     local verify_error_msg = "Invalid access token"
-    local res, err = verify_url(verify_error_msg)
-    local mis_client_id, details, scope, broker_scope = verify_details(res)
+    local res, err = verify_url(url, verify_error_msg)
+    local mis_client_id, details, scope, broker_scope = verify_details(res.body)
 
     if user_id == nil or scope == nil then
       send_error(401, "Invalid access token")
@@ -312,6 +293,25 @@ local function do_process(authorization)
   else
     send_error(401, "Authorization header is not set or doesn't contain Bearer token")
     return ngx.exit(200)
+  end
+end
+
+function MithrilHandler:access(config)
+  MithrilHandler.super.access(self)
+  local cookie, err = ck:new()
+
+  if config.mis_only == true then
+    do_process_mis_only()
+  else
+    local authorization
+    local field, err = cookie:get("authorization")
+    if not field then
+      authorization = ngx.req.get_headers()["authorization"]
+    else
+      authorization = "Bearer " .. field
+    end
+
+    do_process(authorization)
   end
 end
 
