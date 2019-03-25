@@ -87,17 +87,17 @@ local function verify_url(url, error_msg)
   local httpc = http.new()
   local res, err =
     httpc:request_uri(
-      url,
-      {
-        method = "GET",
-        headers = {
-          accept = "application/json",
-          ["Content-Type"] = "application/json",
-          ["api-key"] = api_key,
-          ["x-request-id"] = ngx.ctx.correlationid_header_value
-        }
+    url,
+    {
+      method = "GET",
+      headers = {
+        accept = "application/json",
+        ["Content-Type"] = "application/json",
+        ["api-key"] = api_key,
+        ["x-request-id"] = ngx.ctx.correlationid_header_value
       }
-    )
+    }
+  )
 
   httpc:close()
 
@@ -134,7 +134,6 @@ local function set_mis_client_id(scope, mis_client_id, details)
   end
 end
 
-
 local function check_scopes(rule, scope, broker_scope)
   if rule == nil then
     send_error(403, "ACL: No matching rule was found for path " .. ngx.ctx.router_matches.uri)
@@ -153,8 +152,7 @@ local function check_scopes(rule, scope, broker_scope)
   if #missing_scopes > 0 then
     send_error(
       403,
-      "Your scope does not allow to access this resource. Missing allowances: " ..
-      table.concat(missing_scopes, ", ")
+      "Your scope does not allow to access this resource. Missing allowances: " .. table.concat(missing_scopes, ", ")
     )
     return ngx.exit(200)
   end
@@ -164,8 +162,7 @@ local function check_scopes(rule, scope, broker_scope)
     if #missing_scopes > 0 then
       send_error(
         403,
-        "Your scope does not allow to access this resource. Missing allowances: " ..
-        table.concat(missing_scopes, ", ")
+        "Your scope does not allow to access this resource. Missing allowances: " .. table.concat(missing_scopes, ", ")
       )
       return ngx.exit(200)
     end
@@ -205,17 +202,17 @@ local function check_abac(rule, user_id, mis_client_id, details)
       local httpc = http.new()
       local res, err =
         httpc:request_uri(
-          abac.endpoint,
-          {
-            method = "POST",
-            body = json.encode(request),
-            headers = {
-              accept = "application/json",
-              ["Content-Type"] = "application/json",
-              ["x-request-id"] = ngx.ctx.correlationid_header_value
-            }
+        abac.endpoint,
+        {
+          method = "POST",
+          body = json.encode(request),
+          headers = {
+            accept = "application/json",
+            ["Content-Type"] = "application/json",
+            ["x-request-id"] = ngx.ctx.correlationid_header_value
           }
-        )
+        }
+      )
 
       httpc:close()
 
@@ -231,7 +228,6 @@ local function check_abac(rule, user_id, mis_client_id, details)
         send_error(403, "Access denied")
         return ngx.exit(200)
       end
-
     end
   else
     send_error(401, "Abac rule was not found")
