@@ -173,16 +173,22 @@ local function check_abac(rule, user_id, mis_client_id, details)
   local abac = rule.abac
   if abac then
     local m, err = ngx.re.match(ngx.var.request_uri, abac.rule)
+    local args, err = ngx.req.get_uri_args()
 
     -- Rule was found
     if m then
       local resource_id = m[abac.resource_id]
       local contexts = {}
       for i, j in pairs(abac.contexts) do
-        contexts[i] = {
-          type = j["name"],
-          id = m[j["id"]]
-        }
+        -- if context is absent in uri, take it from query params
+        local context_id = m[j["id"]] or args[j["id"]]
+
+        if context_id ~= nil then
+          contexts[i] = {
+            type = j["name"],
+            id = context_id
+          }
+        end
       end
 
       local request = {
