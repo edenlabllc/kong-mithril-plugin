@@ -179,7 +179,7 @@ local function check_abac(rule, user_id, mis_client_id, details)
     if m then
       local resource_id = m[abac.resource_id]
       local contexts = {}
-      local index = 0
+      local index = 1
       for i, j in pairs(abac.contexts) do
         -- if context is absent in uri, take it from query params
         local context_id = m[j["id"]] or args[j["id"]]
