@@ -1,5 +1,3 @@
-local Errors = require "kong.dao.errors"
-
 local function context_check(value)
   local context_fields = {
     name = "string",
@@ -134,7 +132,7 @@ return {
     redis_timeout = {type = "number", default = 2000},
     redis_database = {type = "number", default = 0},
     hide_client_headers = {type = "boolean", default = false},
-    mis_only= {type = "boolean", default = false}
+    mis_only = {type = "boolean", default = false}
   },
   self_check = function(schema, plugin_t, dao, is_update)
     local ordered_periods = {"second", "minute", "hour", "day", "month", "year"}
@@ -158,20 +156,20 @@ return {
     end
 
     if invalid_value then
-      return false, Errors.schema(invalid_value)
+      return false, invalid_value
     elseif invalid_order then
-      return false, Errors.schema(invalid_order)
+      return false, invalid_order
     end
 
     if has_value then
       if not plugin_t.redis_host then
-        return false, Errors.schema "You need to specify a Redis host"
+        return false, "You need to specify a Redis host"
       end
       if not plugin_t.redis_port then
-        return false, Errors.schema "You need to specify a Redis port"
+        return false, "You need to specify a Redis port"
       end
       if not plugin_t.redis_timeout then
-        return false, Errors.schema "You need to specify a Redis timeout"
+        return false, "You need to specify a Redis timeout"
       end
     end
 
