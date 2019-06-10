@@ -1,6 +1,5 @@
 local policy = require "kong.plugins.mithril.rate-limiting.policy"
 local timestamp = require "kong.tools.timestamp"
-local responses = require "kong.tools.responses"
 local resty_md5 = require "resty.md5"
 local str = require "resty.string"
 
@@ -76,7 +75,7 @@ return {
       if fault_tolerant then
         ngx_log(ngx.ERR, "failed to get usage: ", tostring(err))
       else
-        return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
+        return kong.response.exit(500, err)
       end
     end
 
@@ -92,7 +91,7 @@ return {
 
       -- If limit is exceeded, terminate the request
       if stop then
-        return responses.send(429, "API rate limit exceeded")
+        return kong.response.exit(429, "API rate limit exceeded")
       end
     end
 
