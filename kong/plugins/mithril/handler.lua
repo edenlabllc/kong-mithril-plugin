@@ -1,5 +1,5 @@
 local BasePlugin = require "kong.plugins.base_plugin"
-local json = require "dkjson"
+local json = require "cjson"
 local http = require "resty.http"
 local rstrip = require("pl.stringx").rstrip
 local split = require("pl.stringx").split

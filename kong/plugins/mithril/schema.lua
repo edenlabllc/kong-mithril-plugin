@@ -36,6 +36,7 @@ end
 return {
   name = "mithril",
   fields = {
+    {consumer = typedefs.no_consumer},
     {
       config = {
         type = "record",
