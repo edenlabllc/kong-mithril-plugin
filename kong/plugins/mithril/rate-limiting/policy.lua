@@ -7,8 +7,8 @@ local ngx_log = ngx.log
 local pairs = pairs
 local fmt = string.format
 
-local get_local_key = function(api_id, identifier, period_date, name)
-  return fmt("ratelimit:%s:%s:%s:%s", api_id, identifier, period_date, name)
+local get_local_key = function(route_id, identifier, period_date, name)
+  return fmt("ratelimit:%s:%s:%s:%s", route_id, identifier, period_date, name)
 end
 
 local EXPIRATIONS = {
@@ -21,7 +21,7 @@ local EXPIRATIONS = {
 }
 
 return {
-  increment = function(conf, limits, api_id, identifier, current_timestamp, value)
+  increment = function(conf, limits, route_id, identifier, current_timestamp, value)
     local red = redis:new()
     red:set_timeout(conf.redis_timeout)
     local ok, err = red:connect(conf.redis_host, conf.redis_port)
@@ -52,7 +52,7 @@ return {
     local periods = timestamp.get_timestamps(current_timestamp)
     for period, period_date in pairs(periods) do
       if limits[period] then
-        local cache_key = get_local_key(api_id, identifier, period_date, period)
+        local cache_key = get_local_key(route_id, identifier, period_date, period)
         local exists, err = red:exists(cache_key)
         if err then
           ngx_log(ngx.ERR, "failed to query Redis: ", err)
@@ -88,7 +88,7 @@ return {
 
     return true
   end,
-  usage = function(conf, api_id, identifier, current_timestamp, name)
+  usage = function(conf, route_id, identifier, current_timestamp, name)
     local red = redis:new()
     red:set_timeout(conf.redis_timeout)
     local ok, err = red:connect(conf.redis_host, conf.redis_port)
@@ -116,7 +116,7 @@ return {
     reports.retrieve_redis_version(red)
 
     local periods = timestamp.get_timestamps(current_timestamp)
-    local cache_key = get_local_key(api_id, identifier, periods[name], name)
+    local cache_key = get_local_key(route_id, identifier, periods[name], name)
     local current_metric, err = red:get(cache_key)
     if err then
       return nil, err

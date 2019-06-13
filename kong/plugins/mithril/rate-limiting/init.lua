@@ -11,12 +11,12 @@ local ngx_timer_at = ngx.timer.at
 local RATELIMIT_LIMIT = "X-RateLimit-Limit"
 local RATELIMIT_REMAINING = "X-RateLimit-Remaining"
 
-local function get_usage(conf, api_id, identifier, current_timestamp, limits)
+local function get_usage(conf, route_id, identifier, current_timestamp, limits)
   local usage = {}
   local stop
 
   for name, limit in pairs(limits) do
-    local current_usage, err = policy.usage(conf, api_id, identifier, current_timestamp, name)
+    local current_usage, err = policy.usage(conf, route_id, identifier, current_timestamp, name)
     if err then
       return nil, nil, err
     end
@@ -44,7 +44,7 @@ return {
     local md5 = resty_md5:new()
     md5:update(token)
     local identifier = str.to_hex(md5:final())
-    local api_id = ngx.ctx.api.id
+    local route_id = ngx.ctx.route.id
     local fault_tolerant = conf.fault_tolerant
 
     -- Load current metric for configured period
@@ -70,7 +70,7 @@ return {
       return true
     end
 
-    local usage, stop, err = get_usage(conf, api_id, identifier, current_timestamp, limits)
+    local usage, stop, err = get_usage(conf, route_id, identifier, current_timestamp, limits)
     if err then
       if fault_tolerant then
         ngx_log(ngx.ERR, "failed to get usage: ", tostring(err))
@@ -95,15 +95,15 @@ return {
       end
     end
 
-    local incr = function(premature, conf, limits, api_id, identifier, current_timestamp, value)
+    local incr = function(premature, conf, limits, route_id, identifier, current_timestamp, value)
       if premature then
         return
       end
-      policy.increment(conf, limits, api_id, identifier, current_timestamp, value)
+      policy.increment(conf, limits, route_id, identifier, current_timestamp, value)
     end
 
     -- Increment metrics for configured periods if the request goes through
-    local ok, err = ngx_timer_at(0, incr, conf, limits, api_id, identifier, current_timestamp, 1)
+    local ok, err = ngx_timer_at(0, incr, conf, limits, route_id, identifier, current_timestamp, 1)
     if not ok then
       ngx_log(ngx.ERR, "failed to create timer: ", err)
     end
