@@ -2,15 +2,11 @@ local typedefs = require "kong.db.schema.typedefs"
 
 local ORDERED_PERIODS = {"second", "minute", "hour", "day", "month", "year"}
 
-local is_present = function(v)
-  return type(v) == "string" and #v > 0
-end
-
 local function validate_periods_order(config)
   for i, lower_period in ipairs(ORDERED_PERIODS) do
     local v1 = config[lower_period]
     if type(v1) == "number" then
-      if config.redis_host then
+      if getmetatable(config.redis_host) == nil then
         return nil, string.format("redis host must be set if %s is set", lower_period)
       end
 
