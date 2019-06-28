@@ -106,8 +106,7 @@ return {
                         },
                         {
                           resource_id = {
-                            type = "string",
-                            required = true
+                            type = "string"
                           }
                         },
                         {
