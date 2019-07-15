@@ -6,6 +6,11 @@ local split = require("pl.stringx").split
 local CorrelationIdHandler = require("kong.plugins.correlation-id.handler")
 local ck = require("resty.cookie")
 local rate_limiting = require("kong.plugins.mithril.rate-limiting")
+local uuid = require "kong.tools.utils".uuid
+
+local kong = kong
+local worker_uuid
+local worker_counter
 
 local MithrilHandler = BasePlugin:extend()
 local req_headers = {}
@@ -13,6 +18,24 @@ local req_headers = {}
 MithrilHandler.PRIORITY = 770
 MithrilHandler.VERSION = "0.0.1"
 CorrelationIdHandler.PRIORITY = 1501
+
+local function get_correlation_id()
+  local header_name = "x-request-id"
+  local correlation_id = kong.request.get_header(header_name)
+  if not correlation_id then
+    -- Generate the header value
+    local worker_pid = ngx.worker.pid()
+
+    worker_counter = worker_counter + 1
+    local correlation_id = worker_uuid .. "#" .. worker_counter
+
+    if correlation_id then
+      kong.service.request.set_header(header_name, correlation_id)
+    end
+  end
+
+  return correlation_id
+end
 
 local function send_error(status_code, message)
   ngx.status = status_code
@@ -30,7 +53,7 @@ local function send_error(status_code, message)
     meta = {
       url = ngx.var.scheme .. "://" .. ngx.var.host .. port .. ngx.var.request_uri,
       type = "object",
-      request_id = ngx.ctx.correlationid_header_value,
+      request_id = get_correlation_id(),
       code = status_code
     },
     error = {
@@ -94,7 +117,7 @@ local function verify_url(url, error_msg)
         accept = "application/json",
         ["Content-Type"] = "application/json",
         ["api-key"] = api_key,
-        ["x-request-id"] = kong.ctx.plugin.correlation_id
+        ["x-request-id"] = get_correlation_id()
       }
     }
   )
@@ -122,6 +145,11 @@ end
 
 function MithrilHandler:new()
   MithrilHandler.super.new(self, "mithril")
+end
+
+function MithrilHandler:init_worker()
+  worker_uuid = uuid()
+  worker_counter = 0
 end
 
 local function set_mis_client_id(scope, mis_client_id, details)
@@ -217,7 +245,7 @@ local function check_abac(rule, user_id, mis_client_id, details)
           headers = {
             accept = "application/json",
             ["Content-Type"] = "application/json",
-            ["x-request-id"] = ngx.ctx.correlationid_header_value
+            ["x-request-id"] = kong.ctx.plugin.correlation_id
           }
         }
       )
