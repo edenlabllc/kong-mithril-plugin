@@ -341,7 +341,7 @@ function MithrilHandler:access(config)
   end
 end
 
-function MithrilHandle:header_filter(config)
+function MithrilHandler:header_filter(config)
   local correlation_id = kong.ctx.plugin.correlation_id
   if correlation_id then
     kong.response.set_header(conf.header_name, correlation_id)
