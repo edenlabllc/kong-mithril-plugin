@@ -3,7 +3,6 @@ local json = require "cjson"
 local http = require "resty.http"
 local rstrip = require("pl.stringx").rstrip
 local split = require("pl.stringx").split
-local CorrelationIdHandler = require("kong.plugins.correlation-id.handler")
 local ck = require("resty.cookie")
 local rate_limiting = require("kong.plugins.mithril.rate-limiting")
 local uuid = require "kong.tools.utils".uuid
@@ -17,7 +16,6 @@ local req_headers = {}
 
 MithrilHandler.PRIORITY = 770
 MithrilHandler.VERSION = "0.0.1"
-CorrelationIdHandler.PRIORITY = 1501
 
 local function get_correlation_id()
   local header_name = "x-request-id"
@@ -53,7 +51,7 @@ local function send_error(status_code, message)
     meta = {
       url = ngx.var.scheme .. "://" .. ngx.var.host .. port .. ngx.var.request_uri,
       type = "object",
-      request_id = get_correlation_id(),
+      request_id = kong.ctx.plugin.correlation_id,
       code = status_code
     },
     error = {
@@ -117,7 +115,7 @@ local function verify_url(url, error_msg)
         accept = "application/json",
         ["Content-Type"] = "application/json",
         ["api-key"] = api_key,
-        ["x-request-id"] = get_correlation_id()
+        ["x-request-id"] = kong.ctx.plugin.correlation_id
       }
     }
   )
@@ -331,6 +329,7 @@ end
 function MithrilHandler:access(config)
   MithrilHandler.super.access(self)
   local cookie, err = ck:new()
+  kong.ctx.plugin.correlation_id = get_correlation_id()
 
   if config.mis_only == true then
     do_process_mis_only(config)
