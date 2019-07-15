@@ -94,7 +94,7 @@ local function verify_url(url, error_msg)
         accept = "application/json",
         ["Content-Type"] = "application/json",
         ["api-key"] = api_key,
-        ["x-request-id"] = ngx.ctx.correlationid_header_value
+        ["x-request-id"] = kong.ctx.plugin.correlation_id
       }
     }
   )
