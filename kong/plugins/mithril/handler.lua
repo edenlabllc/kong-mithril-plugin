@@ -320,6 +320,10 @@ end
 function MithrilHandler:access(config)
   local cookie, err = ck:new()
   kong.ctx.plugin.correlation_id = get_correlation_id()
+  ngx.log(ngx.ERR, "header_name: " .. header_name)
+  ngx.log(ngx.ERR, "correlation_id: " .. kong.ctx.plugin.correlation_id)
+
+  kong.service.request.set_header(header_name, kong.ctx.plugin.correlation_id)
 
   if config.mis_only == true then
     do_process_mis_only(config)
