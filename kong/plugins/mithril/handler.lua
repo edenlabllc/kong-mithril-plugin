@@ -136,10 +136,6 @@ local function verify_details(body)
   return mis_client_id, details, scope, broker_scope, user_id
 end
 
-function MithrilHandler:new()
-  MithrilHandler.super.new(self, "mithril")
-end
-
 function MithrilHandler:init_worker()
   worker_uuid = uuid()
   worker_counter = 0
@@ -322,7 +318,6 @@ local function do_process(config, authorization)
 end
 
 function MithrilHandler:access(config)
-  MithrilHandler.super.access(self)
   local cookie, err = ck:new()
   kong.ctx.plugin.correlation_id = get_correlation_id()
 
