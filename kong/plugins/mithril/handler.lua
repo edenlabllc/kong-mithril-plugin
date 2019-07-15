@@ -24,7 +24,7 @@ local function get_correlation_id()
     local worker_pid = ngx.worker.pid()
 
     worker_counter = worker_counter + 1
-    local correlation_id = worker_uuid .. "#" .. worker_counter
+    correlation_id = worker_uuid .. "#" .. worker_counter
   end
 
   return correlation_id
