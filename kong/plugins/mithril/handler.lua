@@ -1,4 +1,3 @@
-local BasePlugin = require "kong.plugins.base_plugin"
 local json = require "cjson"
 local http = require "resty.http"
 local rstrip = require("pl.stringx").rstrip
@@ -11,7 +10,7 @@ local kong = kong
 local worker_uuid
 local worker_counter
 
-local MithrilHandler = BasePlugin:extend()
+local MithrilHandler = {}
 local req_headers = {}
 
 MithrilHandler.PRIORITY = 770
@@ -26,10 +25,6 @@ local function get_correlation_id()
 
     worker_counter = worker_counter + 1
     local correlation_id = worker_uuid .. "#" .. worker_counter
-
-    if correlation_id then
-      kong.service.request.set_header(header_name, correlation_id)
-    end
   end
 
   return correlation_id
@@ -343,6 +338,13 @@ function MithrilHandler:access(config)
     end
 
     do_process(config, authorization)
+  end
+end
+
+function MithrilHandle:header_filter(config)
+  local correlation_id = kong.ctx.plugin.correlation_id
+  if correlation_id then
+    kong.response.set_header(conf.header_name, correlation_id)
   end
 end
 
