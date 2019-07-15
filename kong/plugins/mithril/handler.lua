@@ -12,12 +12,12 @@ local worker_counter
 
 local MithrilHandler = {}
 local req_headers = {}
+local header_name = "x-request-id"
 
 MithrilHandler.PRIORITY = 770
 MithrilHandler.VERSION = "0.0.1"
 
 local function get_correlation_id()
-  local header_name = "x-request-id"
   local correlation_id = kong.request.get_header(header_name)
   if not correlation_id then
     -- Generate the header value
@@ -339,7 +339,7 @@ end
 function MithrilHandler:header_filter(config)
   local correlation_id = kong.ctx.plugin.correlation_id
   if correlation_id then
-    kong.response.set_header(conf.header_name, correlation_id)
+    kong.response.set_header(header_name, correlation_id)
   end
 end
 
