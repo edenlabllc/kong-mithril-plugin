@@ -133,7 +133,9 @@ local function verify_details(body)
   local broker_scope = details.broker_scope
   local user_id = data.user_id or data.consumer_id
   local scope = data.consumer_scope or details.scope
-  return mis_client_id, details, scope, broker_scope, user_id
+  local user = data.user or {}
+  local person_id = user.person_id
+  return mis_client_id, details, scope, broker_scope, user_id, person_id
 end
 
 function MithrilHandler:init_worker()
@@ -186,7 +188,7 @@ local function check_scopes(rule, scope, broker_scope)
   end
 end
 
-local function check_abac(rule, user_id, mis_client_id, details)
+local function check_abac(rule, user_id, mis_client_id, person_id, details)
   local abac = rule.abac
   if abac then
     local m, err = ngx.re.match(ngx.var.request_uri, abac.rule)
@@ -214,7 +216,8 @@ local function check_abac(rule, user_id, mis_client_id, details)
         consumer = {
           user_id = user_id,
           client_id = details.client_id,
-          mis_client_id = mis_client_id
+          mis_client_id = mis_client_id,
+          person_id = person_id
         },
         resource = {
           action = abac.action,
@@ -268,7 +271,7 @@ local function do_process_mis_only(config)
 
     local verify_error_msg = "Invalid api key"
     local res, err = verify_url(url, verify_error_msg)
-    local mis_client_id, details, scope, broker_scope, _ = verify_details(res.body)
+    local mis_client_id, details, scope, broker_scope, _, _ = verify_details(res.body)
 
     if scope == nil then
       send_error(401, "Invalid api key")
@@ -295,7 +298,7 @@ local function do_process(config, authorization)
 
     local verify_error_msg = "Invalid access token"
     local res, err = verify_url(url, verify_error_msg)
-    local mis_client_id, details, scope, broker_scope, user_id = verify_details(res.body)
+    local mis_client_id, details, scope, broker_scope, user_id, person_id = verify_details(res.body)
 
     if user_id == nil or scope == nil then
       send_error(401, "Invalid access token")
@@ -309,7 +312,7 @@ local function do_process(config, authorization)
     local rule = find_rule(config.rules)
     if next(config.rules) ~= nil then
       check_scopes(rule, scope, broker_scope)
-      check_abac(rule, user_id, mis_client_id, details)
+      check_abac(rule, user_id, mis_client_id, person_id, details)
     end
   else
     send_error(401, "Authorization header is not set or doesn't contain Bearer token")
