@@ -306,6 +306,7 @@ local function do_process(config, authorization)
     end
 
     ngx.req.set_header("x-consumer-id", user_id)
+    ngx.req.set_header("x-person-id", person_id)
     ngx.var.upstream_x_consumer_id = user_id
     set_mis_client_id(scope, mis_client_id, details)
 
