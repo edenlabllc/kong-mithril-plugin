@@ -320,6 +320,7 @@ end
 function MithrilHandler:access(config)
   local cookie, err = ck:new()
   kong.ctx.plugin.correlation_id = get_correlation_id()
+  ngx.log(ngx.ERR, "1 correlation_id: ", kong.ctx.plugin.correlation_id)
   kong.service.request.set_header(header_name, kong.ctx.plugin.correlation_id)
 
   if config.mis_only == true then
@@ -339,6 +340,7 @@ end
 
 function MithrilHandler:header_filter(config)
   local correlation_id = kong.ctx.plugin.correlation_id
+  ngx.log(ngx.ERR, "2 correlation_id: ", correlation_id)
   if correlation_id then
     kong.response.set_header(header_name, correlation_id)
   end
