@@ -85,7 +85,7 @@ local function find_rule(rules)
   for k, rule in pairs(rules) do
     local path_matched, err = ngx.re.match(api_relative_path, "^" .. rule.path)
 
-    method_matched = false
+    local method_matched = false
     for key, rule_method in pairs(rule.methods) do
       if rule_method == method then
         method_matched = true
